@@ -1,0 +1,90 @@
+<script src="generator.js"></script>
+<style>
+codespace{
+  display:flex;
+  position: absolute;
+  width:100%;
+  height:100%;
+  top:0;
+  left:0;
+}
+#editor, #result{
+  flex: 1;
+}
+#editor{
+  display:flex;
+}
+#code{
+  flex:auto;
+  color:white;
+  background:#201d24;
+}
+#lines {
+  overflow-y: hidden;
+  background-color: rgb(105,105,105);
+  color: #00ffd5; 
+  text-align: right;
+  vertical-align:top
+}
+</style>
+<codespace>
+  <div id="editor">
+    <textarea id="lines" rows="20" cols="3" value="1" readonly></textarea>
+    <textarea id="code" wrap="off" autocomplete="off" autocorrect="off"  autocapitalize="off" spellcheck="false" onclick="selectionchanged(this)" onkeyup="keyup(this,event)" oninput="input_changed(this); codespace.save(0);" onscroll="scroll_changed(this)"></textarea>
+  </div>
+  <div id="result"></div>
+</codespace>
+<script>
+var cntline;
+function keyup(obj, e){
+	if(e.keyCode >= 33 && e.keyCode <= 40)
+		selectionchanged(obj, e.keyCode);
+	}
+	function selectionchanged(obj){
+		var substr = obj.value.substring(0,obj.selectionStart).split('\n');
+		var row = substr.length;
+		var col = substr[substr.length-1].length;
+		var tmpstr = '(' + row.toString() + ',' + col.toString() + ')';
+		if(obj.selectionStart != obj.selectionEnd){
+			substr = obj.value.substring(obj.selectionStart, obj.selectionEnd).split('\n');
+			row += substr.length - 1;
+			col = substr[substr.length-1].length;
+			tmpstr += ' - (' + row.toString() + ',' + col.toString() + ')';
+		}
+	}
+	function input_changed(obj_txt){
+		obj_rownr = document.getElementById('lines');
+		cntline = count_lines(obj_txt.value);
+		if(cntline == 0) cntline = 1;
+		tmp_arr = obj_rownr.value.split('\n');
+		cntline_old = parseInt(tmp_arr[tmp_arr.length - 1], 10);
+		if(cntline != cntline_old){
+			obj_rownr.cols = cntline.toString().length;
+			populate_rownr(obj_rownr, cntline);
+			scroll_changed(obj_txt);
+		}
+		selectionchanged(obj_txt);
+	}
+	function scroll_changed(obj_txt){
+		obj_rownr = document.getElementById('lines');
+		scrollsync(obj_txt,obj_rownr);
+	}
+	function scrollsync(obj1, obj2){
+		obj2.scrollTop = obj1.scrollTop;
+	}
+	function populate_rownr(obj, cntline){
+		tmpstr = '';
+		for(i = 1; i <= cntline; i++){
+			tmpstr = tmpstr + i.toString() + '\n';
+		}
+		obj.value = tmpstr;
+	}
+	function count_lines(txt){
+		if(txt == '') return 1;
+		return txt.split('\n').length + 0;
+	}
+</script>
+<script>
+  input_changed(document.getElementById('code'));
+  codespace.init();
+</script>
